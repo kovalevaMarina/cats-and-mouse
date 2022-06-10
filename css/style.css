@@ -2,4 +2,54 @@
   margin: 0;
   padding: 0;
   overflow: hidden;
+  box-sizing: border-box;
+}
+
+.wrap {
+  height: 100vh;
+  background-image: url("../img/fon.png");
+}
+
+.rectangle {
+  position: absolute;
+  background-color: #964B00;
+  border-radius: 10px;
+}
+
+.mouse {
+  width: 80px;
+  height: 80px;
+  z-index: 1;
+}
+
+.result-game {
+  font-size: 25px;
+  font-weight: bold;
+  padding: 30px;
+  text-align: center;
+  position: relative;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: #EABC8B;
+  letter-spacing: 4px;
+  border-top: 2px solid #795D47;
+  border-bottom: 2px solid #795D47;
+  color: #555553;
+  filter: drop-shadow(2px 4px 6px #1A3F31);
+}
+
+.timer {
+  position: fixed;
+  right: 10%;
+  top:  10%;
+  font-size: 25px;
+  font-weight: bold;
+  width: 200px;
+  padding: 30px;
+  background-color: #EABC8B;
+  border: 4px solid #964B00;
+  border-radius: 10px;
+  text-align: center;
+  letter-spacing: 4px;
+  color: #555553;
 }
