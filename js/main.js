@@ -1,6 +1,8 @@
 var store = {
   down: false,
   timeoutIds: [],
+  rectangleIntervalIds: [],
+  timerIntervalsIds: [],
 };
 
 var body = document.body;
@@ -32,42 +34,46 @@ body.addEventListener("click", function () {
   clearTimeout(startGame);
 });
 
-// игра
-mouse.addEventListener("click", function () {
-  store.down = true;
-  body.addEventListener("mousemove", function catAndMouse(e) {
+// получение координат кота и мыши
+function catAndMouse(e) {
+  if (mouse) {
+    mouse.style.left = e.clientX - mouse.offsetWidth / 2 + "px";
+    mouse.style.top = e.clientY - mouse.offsetHeight / 2 + "px";
+    mouse.style.position = "fixed";
+    mouse.style.cursor = "none";
+  }
+
+  var timeId = setTimeout(function () {
     if (mouse) {
-      mouse.style.left = e.clientX - mouse.offsetWidth / 2 + "px";
-      mouse.style.top = e.clientY - mouse.offsetHeight / 2 + "px";
-      mouse.style.position = "fixed";
-      mouse.style.cursor = "none";
+      cat.style.left = e.clientX - cat.offsetWidth / 2 + "px";
+      cat.style.top = e.clientY - cat.offsetHeight / 2 + "px";
+      cat.style.position = "fixed";
+      compareCoordinatesCatAndMouse();
     }
+  }, 2000);
 
-    var timeId = setTimeout(function () {
-      if (mouse) {
-        cat.style.left = e.clientX - cat.offsetWidth / 2 + "px";
-        cat.style.top = e.clientY - cat.offsetHeight / 2 + "px";
-        cat.style.position = "fixed";
-      }
-    }, 2000);
+  store.timeoutIds.push(timeId);
 
-    store.timeoutIds.push(timeId);
+  if (mouseTouchRectangle()) {
+    gameOver("Вы победили с результатом " + timerGame.innerHTML + "! &#9996;");
+  }
+}
 
-    if (mouseTouchRectangle()) {
-      store.timeoutIds.forEach(clearTimeout);
-      clearInterval(createRectangle);
-      clearInterval(timer);
-      container.hidden = true;
-      resultGame.hidden = false;
-      resultGame.innerHTML =
-        "Игра закончилась &#9996; с результатом" +
-        " " +
-        timerGame.innerHTML +
-        "!";
-      body.removeEventListener("mousemove", catAndMouse);
-    }
-  });
-});
+// игра
+mouse.addEventListener(
+  "click",
+  function () {
+    store.down = true;
+    var currentDate = new Date();
+    var getTimerGameForCurrentDate = getTimerGameFunction(currentDate);
+
+    store.rectangleIntervalIds.push(setInterval(getRectangleCoordinates, 5000));
+    store.timerIntervalsIds.push(setInterval(getTimerGameForCurrentDate, 1000));
+
+    body.addEventListener("mousemove", catAndMouse);
+  },
+  { once: true }
+);
 
 // рандомное создание фигуры
 function getRandomIntInclusive(min, max) {
@@ -91,8 +97,6 @@ function getRectangleCoordinates() {
   rectangle.style.position = "fixed";
 }
 
-var createRectangle = setInterval(getRectangleCoordinates, 5000);
-
 // координаты мыши и прямоугольника
 function mouseTouchRectangle() {
   var leftMouse = parseInt(mouse.style.left) + mouse.offsetWidth / 2;
@@ -113,36 +117,42 @@ function compareCoordinatesCatAndMouse() {
     parseInt(mouse.style.left) + mouse.offsetWidth / 2 + "px" ===
       parseInt(cat.style.left) + cat.offsetWidth / 2 + "px" &&
     parseInt(mouse.style.top) + mouse.offsetHeight / 2 + "px" ===
-      parseInt(cat.style.top) + cat.offsetHeight / 2 + "px"
+      parseInt(cat.style.top) + Math.round(cat.offsetHeight / 2) + "px"
   ) {
-    resultGame.innerHTML = "Игра закончена!";
+    gameOver(
+      "Вы проиграли с результатом " + timerGame.innerHTML + "! &#128542;"
+    );
   }
 }
 
 // создание таймера
-var countDate = new Date();
-function getTimerGame() {
-  var date = new Date();
-  var distance = new Date(date - countDate);
-  var currentMinutes = distance.getMinutes();
-  var currentSeconds = distance.getSeconds();
+function getTimerGameFunction(currentDate) {
+  return function () {
+    var date = new Date();
+    var distance = new Date(date - currentDate);
+    var currentMinutes = distance.getMinutes();
+    var currentSeconds = distance.getSeconds();
 
-  if (currentMinutes < 10) {
-    currentMinutes = "0" + currentMinutes;
-  }
+    if (currentMinutes < 10) {
+      currentMinutes = "0" + currentMinutes;
+    }
 
-  if (currentSeconds < 10) {
-    currentSeconds = "0" + currentSeconds;
-  }
-  var currentTotalTime = currentMinutes + ":" + currentSeconds;
+    if (currentSeconds < 10) {
+      currentSeconds = "0" + currentSeconds;
+    }
+    var currentTotalTime = currentMinutes + ":" + currentSeconds;
 
-  timerGame.innerHTML = currentTotalTime;
+    timerGame.innerHTML = currentTotalTime;
+  };
 }
 
-var timer = setInterval(getTimerGame, 1000);
-
-// function gameOver() {
-//   clearInterval(createRectangle);
-//   resultGame.hidden = false;
-//   resultGame.innerHTML = "Игра закончена!";
-// }
+// окончание игры
+function gameOver(textGameOver) {
+  store.timeoutIds.forEach(clearTimeout);
+  store.rectangleIntervalIds.forEach(clearInterval);
+  store.timerIntervalsIds.forEach(clearInterval);
+  container.hidden = true;
+  resultGame.hidden = false;
+  resultGame.innerHTML = textGameOver;
+  body.removeEventListener("mousemove", catAndMouse);
+}
